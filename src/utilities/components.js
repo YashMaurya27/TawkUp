@@ -1,6 +1,6 @@
 import { Box, CircularProgress, Typography } from "@mui/material";
 
-export const circleLoader = (
+export const CircleLoader = (
   <Box
     sx={{
       display: "flex",

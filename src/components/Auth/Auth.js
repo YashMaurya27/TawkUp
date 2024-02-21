@@ -3,7 +3,7 @@ import React, { Suspense, lazy } from "react";
 import { Navigate, Route, Routes } from "react-router";
 import cover from "../../assets/images/authCover.jpg";
 import "./index.css";
-import { circleLoader } from "../../utilities/components";
+import { CircleLoader } from "../../utilities/components";
 
 export default function Auth() {
   const Login = lazy(() => import("./components/Login"));
@@ -46,7 +46,7 @@ export default function Auth() {
             <Route
               path="login"
               element={
-                <Suspense fallback={circleLoader}>
+                <Suspense fallback={CircleLoader}>
                   <Login />
                 </Suspense>
               }
@@ -54,7 +54,7 @@ export default function Auth() {
             <Route
               path="register"
               element={
-                <Suspense fallback={circleLoader}>
+                <Suspense fallback={CircleLoader}>
                   <Register />
                 </Suspense>
               }

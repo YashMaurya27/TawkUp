@@ -1,0 +1,49 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  box-sizing: border-box;
+  padding: 10px 20px;
+  max-width: 1520px;
+  margin: auto;
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.header-logo > img {
+  width: 80px;
+}
+
+.header-logo > p {
+  font-size: 20px;
+  font-weight: bold;
+  position: absolute;
+  left: 50px;
+  bottom: -10px;
+  box-sizing: border-box;
+  border-radius: 4px;
+  color: #532d71;
+}
+
+.header-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-profile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-profile > img {
+  width: 60px;
+}
+
+.header-profile > button {
+  font-size: 14px;
+}

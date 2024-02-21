@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from "react-router";
 import "./App.css";
 import { Suspense, lazy } from "react";
-import { circleLoader } from "./utilities/components";
+import { CircleLoader } from "./utilities/components";
 
 function App() {
   const Home = lazy(() => import("./components/Home/Home"));
@@ -13,7 +13,7 @@ function App() {
         <Route
           path="auth"
           element={
-            <Suspense fallback={circleLoader}>
+            <Suspense fallback={CircleLoader}>
               <Auth />
             </Suspense>
           }
@@ -21,9 +21,9 @@ function App() {
           <Route path="*" element={<>Page not found</>} />
         </Route>
         <Route
-          path="home"
+          path=":uId/home"
           element={
-            <Suspense fallback={circleLoader}>
+            <Suspense fallback={CircleLoader}>
               <Home />
             </Suspense>
           }

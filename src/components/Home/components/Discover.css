@@ -1,0 +1,41 @@
+h2 {
+    margin: 5px 0;
+}
+
+hr {
+    margin: 20px 0;
+}
+
+.user-card {
+    width: 23%;
+    margin: 0 1%;
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 0px 0px 1px;
+    padding: 10px 20px;
+    box-sizing: border-box;
+    border-radius: 4px;
+}
+.user-card > img {
+    width: 80%;
+    margin: 'auto'
+}
+
+.user-card > p {
+    font-size: 18px;
+    margin: 0;
+}
+
+.user-card > h3 {
+    margin: 10px 0;
+}
+
+.card-row > p {
+    margin: 0;
+    font-size: 14px;
+    opacity: 80%;
+}
+
+.card-row {
+    margin: 10px 0;
+    display: flex;
+    justify-content: space-between;
+}

@@ -64,7 +64,7 @@ export default function Login() {
       .then((userCredential) => {
         const user = userCredential.user;
         sessionStorage.setItem("user", convertToJWT(user));
-        navigate("../../home");
+        navigate(`../../${user.uid}/home`);
       })
       .catch((error) => {
         showToast("Invalid Credentials", "error");
@@ -85,7 +85,6 @@ export default function Login() {
               name={fieldName}
               control={control}
               render={({ field }) => (
-                <>
                   <Box
                     sx={{
                       display: "flex",
@@ -136,7 +135,6 @@ export default function Login() {
                       }
                     />
                   </Box>
-                </>
               )}
             />
           </div>

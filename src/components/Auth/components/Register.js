@@ -77,12 +77,20 @@ export default function Register() {
         //   displayName: firstName + " " + lastName,
         //   phoneNumber: mobile,
         // });
+        console.log("registered", userCredential);
         const userRef = ref(database, "users");
-        const newUser = { firstName, lastName, mobile, email, friends: JSON.stringify([]) };
-        console.log('newUser', newUser);
+        const newUser = {
+          firstName,
+          lastName,
+          mobile,
+          email,
+          friends: [],
+          uid: userCredential?.user?.uid,
+        };
+        console.log("newUser", newUser);
         push(userRef, newUser);
         showToast("Registration successful", "success");
-        navigate('../login');
+        navigate("../login");
       })
       .catch((error) => {
         showToast("Registration unsuccessful", "error");

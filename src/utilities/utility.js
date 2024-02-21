@@ -53,3 +53,28 @@ export const convertToJWT = (objectData) => {
   const jwtToken = encodedHeader + "." + encodedPayload + "." + signature;
   return jwtToken;
 };
+
+export const fetchCurrentTime = () => {
+  const currentTime = new Date();
+
+  const currentOffset = currentTime.getTimezoneOffset();
+
+  const ISTOffset = 330; // IST offset UTC +5:30
+
+  const ISTTime = new Date(
+    currentTime.getTime() + (ISTOffset + currentOffset) * 60000
+  );
+
+  let hoursIST = ISTTime.getHours();
+  let mode = "am";
+  if (hoursIST > 12) {
+    hoursIST = hoursIST - 12;
+    mode = "pm";
+  }
+  if (hoursIST === 0) {
+    hoursIST = 12;
+    mode = "am";
+  }
+  const minutesIST = ISTTime.getMinutes();
+  return hoursIST + ":" + minutesIST + mode;
+};

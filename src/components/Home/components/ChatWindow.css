@@ -1,0 +1,22 @@
+.chat-input-container {
+    width: 90%;
+    margin: 10px auto;
+    display: flex;
+    /* border: 1px solid black; */
+    align-items: center;
+    border-radius: 3px;
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 0px 0px 1px;
+    padding: 5px 5px;
+}
+
+.chat-input-container > button {
+    border: none;
+    background-color: white;
+    width: 40px;
+}
+
+.chat-input {
+    border: none;
+    width: calc(100% - 40px);
+    outline: none;
+}

@@ -1,0 +1,27 @@
+.contact-container {
+    display: flex;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 10px 10px;
+    box-sizing: border-box;
+    cursor: pointer
+}
+
+.contact-container:hover {
+    background-color: antiquewhite;
+}
+
+.contact-header {
+  font-size: 14px;
+  margin: 0;
+}
+
+.contact-avatar {
+  width: 60px;
+  border-radius: 50%;
+}
+
+.contact-message {
+  font-size: 12px;
+  opacity: 90%;
+  margin: 0;
+}

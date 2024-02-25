@@ -1,3 +1,6 @@
+import { equalTo, get, orderByChild, query, ref } from "firebase/database";
+import { database } from "./firebase";
+
 export const trimTitles = (text, length) => {
   let trimmed = text.split(" ");
   if (trimmed.length > length) {
@@ -77,4 +80,22 @@ export const fetchCurrentTime = () => {
   }
   const minutesIST = ISTTime.getMinutes();
   return hoursIST + ":" + minutesIST + mode;
+};
+
+export const fetchNodeIDbyUserId = async (userID, usersRef) => {
+  const userQuery = query(usersRef, orderByChild("uid"), equalTo(userID));
+  const querySnapshot = await get(userQuery);
+  if (querySnapshot.exists()) {
+    const userNode = Object.keys(querySnapshot.val())[0];
+    return userNode;
+  } else {
+    return null;
+  }
+};
+
+export const fetchUserDataByNode = async (userNode) => {
+  const userRef = ref(database, `users/${userNode}`);
+  const snapshot = await get(userRef);
+  const existingData = snapshot.val();
+  return existingData;
 };

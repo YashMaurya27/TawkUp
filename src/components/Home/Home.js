@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 // FIREBASE IMPORT
 import { database } from "../../utilities/firebase";
-import { ref, get, query, orderByChild, equalTo } from "firebase/database";
+import { ref, get } from "firebase/database";
 import { useParams } from "react-router";
 import Topbar from "../Common/Topbar";
 import { Box } from "@mui/material";
@@ -10,6 +10,11 @@ import Messages from "./components/Messages";
 import Discover from "./components/Discover";
 import Settings from "./components/Settings";
 import { CircleLoader } from "../../utilities/components";
+import {
+  fetchNodeIDbyUserId,
+  fetchUserDataByNode,
+} from "../../utilities/utility";
+import io from "socket.io-client";
 
 export default function Home() {
   const [users, setUsers] = useState();
@@ -18,20 +23,26 @@ export default function Home() {
   const [tab, setTab] = useState();
   const userID = useParams()?.uId;
   const usersRef = ref(database, "users");
+  const isFirstRender = useRef(true);
 
+  const ENDPOINT =
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:3000"
+      : "https://tawkup.netlify.app/";
+  const socket = io.connect("http://localhost:5000", { transports: ["websocket"] });
   const fetchCurrentUser = async () => {
-    const userQuery = query(usersRef, orderByChild("uid"), equalTo(userID));
-    const querySnapshot = await get(userQuery);
-    if (querySnapshot.exists()) {
-      const userNode = Object.keys(querySnapshot.val())[0];
-      const userRef = ref(database, `users/${userNode}`);
-      const snapshot = await get(userRef);
-      const existingData = snapshot.val();
+    const userNode = await fetchNodeIDbyUserId(userID, usersRef);
+    if (userNode && userNode !== null) {
+      const existingData = await fetchUserDataByNode(userNode);
       setCurrentUser({ ...existingData });
       setFriends(existingData?.["friends"] ?? []);
-      (existingData?.["friends"] ?? []).length === 0
-        ? setTab("discover")
-        : setTab("messages");
+      socket.emit("setUser", { id: existingData?.["uid"] });
+      if (isFirstRender.current === true) {
+        (existingData?.["friends"] ?? []).length === 0
+          ? setTab("discover")
+          : setTab("messages");
+        isFirstRender.current = false;
+      }
     }
   };
 
@@ -43,7 +54,7 @@ export default function Home() {
       Object.keys(usersData).forEach((key) => {
         if (usersData[key]["uid"] !== userID) {
           userArr.push({
-            "userID": key,
+            userID: key,
             ...usersData[key],
           });
         }
@@ -53,17 +64,44 @@ export default function Home() {
       console.error("Error fetching user data:", error.message);
     }
   };
+
+  const sendMessage = (receiverId, message) => {
+    if (message) {
+      socket.emit("privateMessage", { receiverId, message });
+      console.log("message sent to", receiverId, message);
+      console.log("endpoint", ENDPOINT, "socket", socket);
+    }
+  };
+
   useEffect(() => {
     fetchAllUsers();
     fetchCurrentUser();
+    socket.on("message", (message) => {
+      console.log("message listener", message);
+    });
   }, []);
 
   const renderTabs = () => {
     switch (tab) {
       case "messages":
-        return <Messages />;
+        return (
+          <Messages
+            users={users}
+            currentUser={currentUser}
+            fetchAllUsers={fetchAllUsers}
+            fetchCurrentUser={fetchCurrentUser}
+            sendMessage={sendMessage}
+          />
+        );
       case "discover":
-        return <Discover users={users} currentUser={currentUser} fetchAllUsers={fetchAllUsers} />;
+        return (
+          <Discover
+            users={users}
+            currentUser={currentUser}
+            fetchAllUsers={fetchAllUsers}
+            fetchCurrentUser={fetchCurrentUser}
+          />
+        );
       case "settings":
         return <Settings />;
       default:
@@ -74,21 +112,28 @@ export default function Home() {
   return (
     <>
       <Topbar currentUser={currentUser} tab={tab} setTab={setTab} />
-      <Box
-        sx={{
-          width: {
-            xs: "98%",
-            sm: "95%",
-            md: "90%",
-          },
-          margin: "auto",
-          boxShadow: "rgba(0, 0, 0, 0.05) 0px 0px 0px 1px",
-          padding: "20px 20px",
-          borderRadius: "4px",
+      <div
+        style={{
+          backgroundColor: "#f8f6f8",
+          padding: "20px 0",
         }}
       >
-        {tab ? renderTabs() : CircleLoader}
-      </Box>
+        <Box
+          sx={{
+            width: {
+              xs: "98%",
+              sm: "95%",
+              md: "90%",
+            },
+            margin: "auto",
+            boxShadow: "rgba(0, 0, 0, 0.05) 0px 0px 0px 1px",
+            borderRadius: "4px",
+            backgroundColor: "white",
+          }}
+        >
+          {tab ? renderTabs() : CircleLoader}
+        </Box>
+      </div>
     </>
   );
 }

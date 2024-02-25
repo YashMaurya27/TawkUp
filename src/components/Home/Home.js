@@ -29,7 +29,8 @@ export default function Home() {
     process.env.NODE_ENV === "development"
       ? "http://localhost:3000"
       : "https://tawkup.netlify.app/";
-  const socket = io.connect("http://localhost:5000", { transports: ["websocket"] });
+  // const socket = io.connect("http://localhost:5000", { transports: ["websocket"] });
+  const socket = io.connect("/.netlify/functions/server", { transports: ["websocket"] });
   const fetchCurrentUser = async () => {
     const userNode = await fetchNodeIDbyUserId(userID, usersRef);
     if (userNode && userNode !== null) {
@@ -76,8 +77,8 @@ export default function Home() {
   useEffect(() => {
     fetchAllUsers();
     fetchCurrentUser();
-    socket.on("message", (message) => {
-      console.log("message listener", message);
+    socket.on("privateMessage", (message) => {
+      console.log("privateMessage listener", message);
     });
   }, []);
 

@@ -1,9 +1,6 @@
 // functions/server.js
 
 const { Server } = require("socket.io");
-const cors = require("cors");
-
-const corsHandler = cors();
 
 // Initialize socket.io without an HTTP server
 const io = new Server({ transports: ["websocket"] });
@@ -41,34 +38,28 @@ io.on("connection", (socket) => {
 
 // Export the Netlify function handler
 exports.handler = async (event) => {
-  // Wrap the server logic in a Promise to handle async behavior
-  return new Promise((resolve, reject) => {
-    // Enable CORS
-    corsHandler(event, null, () => {});
+  // Parse the body if it exists
+  const body = event.body ? JSON.parse(event.body) : {};
 
-    // Parse the body if it exists
-    const body = event.body ? JSON.parse(event.body) : {};
-
-    // Check the HTTP method and act accordingly
-    if (event.httpMethod === "POST") {
-      // Handle POST request, e.g., setUser
-      if (body.action === "setUser") {
-        io.emit("setUser", body.user);
-        resolve({
-          statusCode: 200,
-          body: "setUser executed successfully",
-        });
-      } else {
-        reject({
-          statusCode: 400,
-          body: "Invalid action",
-        });
-      }
+  // Check the HTTP method and act accordingly
+  if (event.httpMethod === "POST") {
+    // Handle POST request, e.g., setUser
+    if (body.action === "setUser") {
+      io.emit("setUser", body.user);
+      return {
+        statusCode: 200,
+        body: "setUser executed successfully",
+      };
     } else {
-      reject({
+      return {
         statusCode: 400,
-        body: "Invalid HTTP method",
-      });
+        body: "Invalid action",
+      };
     }
-  });
+  } else {
+    return {
+      statusCode: 400,
+      body: "Invalid HTTP method",
+    };
+  }
 };

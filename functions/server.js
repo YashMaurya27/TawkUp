@@ -16,11 +16,6 @@ const server = createServer((req, res) => {
       "Content-Type, Access-Control-Allow-Headers"
     );
 
-    // Your socket.io logic remains unchanged here...
-
-    // For simplicity, you can handle different routes (e.g., /privateMessage) here.
-    // You may want to use Express if your app grows.
-
     res.statusCode = 404;
     res.end("Not Found");
   });
@@ -59,11 +54,17 @@ io.on("connection", (socket) => {
   });
 });
 
-// The function handler
-exports.handler = (event, context) => {
-  // 'server' is already created above. Here, we just pass the event and context to the server.
-  // This is a simple setup; you may want to handle different routes, headers, etc., as your app requires.
+// Export the Netlify function handler
+exports.handler = async (event) => {
+  // Wrap the server logic in a Promise to handle async behavior
+  return new Promise((resolve, reject) => {
+    // Pass the event to the server
+    server.emit("request", event);
 
-  // Make sure to export the server in your Netlify function.
-  server(event, context);
+    // Resolve the Promise to signal completion
+    resolve({
+      statusCode: 200,
+      body: "Function executed successfully",
+    });
+  });
 };

@@ -58,7 +58,7 @@ exports.handler = async (event) => {
     }
   } else {
     return {
-      statusCode: 400,
+      statusCode: 405, // Method Not Allowed
       body: "Invalid HTTP method",
     };
   }

@@ -1,27 +1,12 @@
 // functions/server.js
 
-const { createServer } = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
 
 const corsHandler = cors();
 
-const server = createServer((req, res) => {
-  corsHandler(req, res, () => {
-    res.setHeader("Access-Control-Allow-Credentials", "true");
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
-    res.setHeader(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Access-Control-Allow-Headers"
-    );
-
-    res.statusCode = 404;
-    res.end("Not Found");
-  });
-});
-
-const io = new Server(server, { transports: ["websocket"] });
+// Initialize socket.io without an HTTP server
+const io = new Server({ transports: ["websocket"] });
 
 const connectedUsers = {};
 
@@ -58,13 +43,32 @@ io.on("connection", (socket) => {
 exports.handler = async (event) => {
   // Wrap the server logic in a Promise to handle async behavior
   return new Promise((resolve, reject) => {
-    // Pass the event to the server
-    server.emit("request", event);
+    // Enable CORS
+    corsHandler(event, null, () => {});
 
-    // Resolve the Promise to signal completion
-    resolve({
-      statusCode: 200,
-      body: "Function executed successfully",
-    });
+    // Parse the body if it exists
+    const body = event.body ? JSON.parse(event.body) : {};
+
+    // Check the HTTP method and act accordingly
+    if (event.httpMethod === "POST") {
+      // Handle POST request, e.g., setUser
+      if (body.action === "setUser") {
+        io.emit("setUser", body.user);
+        resolve({
+          statusCode: 200,
+          body: "setUser executed successfully",
+        });
+      } else {
+        reject({
+          statusCode: 400,
+          body: "Invalid action",
+        });
+      }
+    } else {
+      reject({
+        statusCode: 400,
+        body: "Invalid HTTP method",
+      });
+    }
   });
 };

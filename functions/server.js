@@ -1,24 +1,37 @@
-// functions/server.js
+const express = require("express");
+const http = require("http");
+const socketIo = require("socket.io");
+const cors = require("cors");
 
-const { Server } = require("socket.io");
+const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, { transports: ["websocket"] });
 
-// Initialize socket.io without an HTTP server
-const io = new Server({ transports: ["websocket"] });
+app.use(cors());
 
-const connectedUsers = {};
+// {
+//     origin: "http://localhost:3000",
+//     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+//     credentials: true,
+//     allowedHeaders: "Content-Type",
+//   }
 
+const connectedUsers = {}; // To store connected users and their corresponding sockets
+// console.log("connectedUsers", connectedUsers);
 io.on("connection", (socket) => {
   console.log("User connected");
 
+  // Set up user information when a user connects
   socket.on("setUser", (user) => {
     connectedUsers[user.id] = socket;
     console.log("userSet", connectedUsers);
   });
 
+  // Listen for incoming private messages
   socket.on("privateMessage", (data) => {
     const { receiverId, message } = data;
     console.log("sending on server file", receiverId, message);
-
+    // Check if the receiver is connected, then send the message privately
     if (connectedUsers[receiverId]) {
       connectedUsers[receiverId].emit("privateMessage", {
         senderId: socket.id,
@@ -32,34 +45,12 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log("User disconnected");
+    // Remove the user from the connected users list upon disconnection
     delete connectedUsers[socket.id];
   });
 });
 
-// Export the Netlify function handler
-exports.handler = async (event) => {
-  // Parse the body if it exists
-  const body = event.body ? JSON.parse(event.body) : {};
-
-  // Check the HTTP method and act accordingly
-  if (event.httpMethod === "POST") {
-    // Handle POST request, e.g., setUser
-    if (body.action === "setUser") {
-      io.emit("setUser", body.user);
-      return {
-        statusCode: 200,
-        body: "setUser executed successfully",
-      };
-    } else {
-      return {
-        statusCode: 400,
-        body: "Invalid action",
-      };
-    }
-  } else {
-    return {
-      statusCode: 405, // Method Not Allowed
-      body: "Invalid HTTP method",
-    };
-  }
-};
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});

@@ -29,8 +29,10 @@ export default function Home() {
     process.env.NODE_ENV === "development"
       ? "http://localhost:3000"
       : "https://tawkup.netlify.app/";
-  // const socket = io.connect("http://localhost:5000", { transports: ["websocket"] });
-  const socket = io.connect("https://tawkup.netlify.app/.netlify/functions/server", { transports: ["websocket"] });
+  const socket = io.connect("http://localhost:5000", {
+    transports: ["websocket"],
+  });
+  // const socket = io.connect("https://tawkup.netlify.app/.netlify/functions/server", { transports: ["websocket"] });
   const fetchCurrentUser = async () => {
     const userNode = await fetchNodeIDbyUserId(userID, usersRef);
     if (userNode && userNode !== null) {

@@ -1,37 +1,47 @@
-const express = require("express");
-const http = require("http");
-const socketIo = require("socket.io");
+// functions/server.js
+
+const { createServer } = require("http");
+const { Server } = require("socket.io");
 const cors = require("cors");
 
-const app = express();
-const server = http.createServer(app);
-const io = socketIo(server, { transports: ["websocket"] });
+const corsHandler = cors();
 
-app.use(cors());
+const server = createServer((req, res) => {
+  corsHandler(req, res, () => {
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Access-Control-Allow-Headers"
+    );
 
-// {
-//     origin: "http://localhost:3000",
-//     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-//     credentials: true,
-//     allowedHeaders: "Content-Type",
-//   }
+    // Your socket.io logic remains unchanged here...
 
-const connectedUsers = {}; // To store connected users and their corresponding sockets
-// console.log("connectedUsers", connectedUsers);
+    // For simplicity, you can handle different routes (e.g., /privateMessage) here.
+    // You may want to use Express if your app grows.
+
+    res.statusCode = 404;
+    res.end("Not Found");
+  });
+});
+
+const io = new Server(server, { transports: ["websocket"] });
+
+const connectedUsers = {};
+
 io.on("connection", (socket) => {
   console.log("User connected");
 
-  // Set up user information when a user connects
   socket.on("setUser", (user) => {
     connectedUsers[user.id] = socket;
     console.log("userSet", connectedUsers);
   });
 
-  // Listen for incoming private messages
   socket.on("privateMessage", (data) => {
     const { receiverId, message } = data;
     console.log("sending on server file", receiverId, message);
-    // Check if the receiver is connected, then send the message privately
+
     if (connectedUsers[receiverId]) {
       connectedUsers[receiverId].emit("privateMessage", {
         senderId: socket.id,
@@ -45,14 +55,15 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log("User disconnected");
-    // Remove the user from the connected users list upon disconnection
     delete connectedUsers[socket.id];
   });
 });
 
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// The function handler
+exports.handler = (event, context) => {
+  // 'server' is already created above. Here, we just pass the event and context to the server.
+  // This is a simple setup; you may want to handle different routes, headers, etc., as your app requires.
 
-module.exports = { io };
+  // Make sure to export the server in your Netlify function.
+  server(event, context);
+};

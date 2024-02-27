@@ -1,5 +1,5 @@
 import { Box, Button, CircularProgress, Skeleton } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import { fetchUserDataByNode } from "../../../utilities/utility";
 import Avatar from "../../../assets/images/userOne.jpg";
@@ -16,6 +16,7 @@ export default function TextList({
   const [friendsData, setFriendsData] = useState();
   const [friendsLoad, setFriendsLoad] = useState(false);
   const [hovered, setHovered] = useState();
+  const isFirstRender = useRef(true);
 
   const fetchAllFriends = async (friendArr) => {
     setFriendsLoad(true);
@@ -25,7 +26,10 @@ export default function TextList({
     });
     const friendsDataArr = await Promise.all(promises);
     setFriendsData([...friendsDataArr]);
-    setChatOpened(friendsDataArr[0]);
+    if (isFirstRender.current === true) {
+      setChatOpened(friendsDataArr[0]);
+      isFirstRender.current = false;
+    }
     setFriendsLoad(false);
   };
 
@@ -54,7 +58,7 @@ export default function TextList({
           }}
         >
           Messages{" "}
-          {friendsLoad === true && (
+          {/* {friendsLoad === true && (
             <CircularProgress
               size={18}
               sx={{
@@ -62,7 +66,7 @@ export default function TextList({
               }}
               color="inherit"
             />
-          )}
+          )} */}
         </Box>
         <Box>
           <Button>
@@ -80,11 +84,11 @@ export default function TextList({
                   backgroundColor:
                     friend["uid"] === chatOpened["uid"]
                       ? hovered === friend["uid"]
-                        ? "#e0ccff" 
-                        : "#f4e6ff" 
+                        ? "#e0ccff"
+                        : "#f4e6ff"
                       : hovered === friend["uid"]
-                      ? "#f0f0f0" 
-                      : "white", 
+                      ? "#f0f0f0"
+                      : "white",
                   transition: "background-color 0.3s ease",
                 }}
                 key={`${friend["uid"]}-box`}
@@ -92,7 +96,7 @@ export default function TextList({
                   setChatOpened(friend);
                 }}
                 onMouseEnter={() => {
-                  setHovered(friend['uid']);
+                  setHovered(friend["uid"]);
                 }}
                 onMouseLeave={() => {
                   setHovered(undefined);

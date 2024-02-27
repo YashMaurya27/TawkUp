@@ -1,5 +1,5 @@
 import { Box, Button, CircularProgress } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Avatar from "../../../assets/images/userOne.jpg";
 import "./Discover.css";
 import { Add } from "@mui/icons-material";
@@ -14,6 +14,22 @@ import RemoveIcon from "@mui/icons-material/Remove";
 export default function Discover({ users, currentUser, ...props }) {
   const [requestLoad, setRequestLoad] = useState();
   const usersRef = ref(database, "users");
+  const [intervalId, setIntervalId] = useState(null);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log('interval')
+      props.fetchAllUsers();
+      props.fetchCurrentUser();
+    }, 5000);
+    setIntervalId(interval);
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, []);
 
   const connectHandler = async (user) => {
     setRequestLoad(user["uid"]);
@@ -102,9 +118,11 @@ export default function Discover({ users, currentUser, ...props }) {
   };
 
   return (
-    <Box sx={{
-      padding: "20px 20px",
-    }}>
+    <Box
+      sx={{
+        padding: "20px 20px",
+      }}
+    >
       <Box
         sx={{
           textAlign: "start",

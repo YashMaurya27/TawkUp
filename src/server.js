@@ -20,24 +20,25 @@ const connectedUsers = {}; // To store connected users and their corresponding s
 // console.log("connectedUsers", connectedUsers);
 io.on("connection", (socket) => {
   console.log("User connected");
-
+  let currentUserId;
   // Set up user information when a user connects
   socket.on("setUser", (user) => {
     connectedUsers[user.id] = socket;
+    currentUserId = user.id;
     console.log("userSet", connectedUsers);
   });
 
   // Listen for incoming private messages
-  socket.on("privateMessage", (data) => {
+  socket.on("privateMessage", (data, check) => {
     const { receiverId, message } = data;
-    console.log("sending on server file", receiverId, message);
+    console.log("sending on server file", receiverId, message, data);
     // Check if the receiver is connected, then send the message privately
     if (connectedUsers[receiverId]) {
       connectedUsers[receiverId].emit("privateMessage", {
         senderId: socket.id,
         message,
+        userId: currentUserId,
       });
-      console.log("message emitted");
     } else {
       console.log("user", receiverId, "not connected");
     }

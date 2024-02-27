@@ -1,17 +1,41 @@
 import React, { useEffect, useState } from "react";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import { Box, Button } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import { CircleLoader } from "../../../utilities/components";
 import Texture from "../../../assets/images/bgTexture.png";
-import SendIcon from '@mui/icons-material/Send';
+import SendIcon from "@mui/icons-material/Send";
 import "./ChatWindow.css";
+import { fetchChatData, fetchChatKey } from "../../../utilities/utility";
+import { get, ref } from "firebase/database";
+import { database } from "../../../utilities/firebase";
+import Avatar from "../../../assets/images/userOne.jpg";
 
-export default function ChatWindow({ chatOpened, sendMessage, chatInput, setChatInput }) {
+export default function ChatWindow({
+  currentUser,
+  chatOpened,
+  sendMessage,
+  chatInput,
+  setChatInput,
+  chatData,
+  setChatData,
+}) {
   const [chatLoad, setChatLoad] = useState(true);
+
+  const handleSendMessage = async () => {
+    setChatInput("");
+    await sendMessage(chatOpened["uid"], chatInput);
+    const chat = await fetchChatData(currentUser, chatOpened["uid"]);
+    setChatData([...chat]);
+  };
 
   useEffect(() => {
     if (chatOpened) {
-      setChatLoad(false);
+      setChatData([]);
+      setChatLoad(true);
+      fetchChatData(currentUser, chatOpened["uid"]).then((res) => {
+        setChatData([...res]);
+        setChatLoad(false);
+      });
     }
   }, [chatOpened]);
 
@@ -48,13 +72,71 @@ export default function ChatWindow({ chatOpened, sendMessage, chatInput, setChat
               backgroundImage: `url(${Texture})`,
               backgroundSize: "cover", // Adjust the background size as needed
               backgroundPosition: "center",
+              height: "70vh",
+              overflowY: "scroll",
             }}
-          ></Box>
+          >
+            {chatData.map((chat) => {
+              return (
+                <Box
+                  sx={{
+                    width: "100%",
+                    display: "flex",
+                    justifyContent:
+                      chat["sender"] === currentUser["uid"] ? "end" : "start",
+                    margin: "5px 0",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection:
+                        chat["sender"] === currentUser["uid"]
+                          ? "row-reverse"
+                          : "row",
+                    }}
+                  >
+                    <img
+                      src={Avatar}
+                      alt="chat-avatar"
+                      style={{
+                        width: "40px",
+                        borderRadius: "50%",
+                        margin: "0 10px",
+                      }}
+                    />
+                    <Box
+                      sx={{
+                        textWrap: "wrap",
+                        boxShadow: "rgba(0, 0, 0, 0.05) 0px 0px 0px 1px",
+                        backgroundColor:
+                          chat["sender"] === currentUser["uid"]
+                            ? "white"
+                            : "#9c27b0",
+                        color:
+                          chat["sender"] === currentUser["uid"]
+                            ? "black"
+                            : "white",
+                        padding: "5px 15px",
+                        borderRadius: "20px",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      <p className="chat-text">{chat["message"]}</p>
+                    </Box>
+                  </Box>
+                </Box>
+              );
+            })}
+          </Box>
           <Box
             sx={{
-              position: "absolute",
-              bottom: "0",
               width: "100%",
+              backgroundImage: `url(${Texture})`,
+              backgroundSize: "cover", // Adjust the background size as needed
+              backgroundPosition: "center",
             }}
           >
             <div className="chat-input-container">
@@ -65,13 +147,14 @@ export default function ChatWindow({ chatOpened, sendMessage, chatInput, setChat
                 onChange={(e) => setChatInput(e.target.value)}
                 placeholder="Type something"
                 onKeyUp={(e) => {
-                  if(e.keyCode === 13) {
-                    console.log('enter press', chatInput);
-                    sendMessage(chatOpened['uid'], chatInput);
+                  if (e.keyCode === 13) {
+                    handleSendMessage();
                   }
                 }}
               />
-              <button onClick={() => sendMessage(chatOpened['uid'], chatInput)}><SendIcon /></button>
+              <button onClick={() => handleSendMessage()}>
+                <SendIcon />
+              </button>
             </div>
           </Box>
         </>

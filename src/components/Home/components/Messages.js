@@ -9,7 +9,9 @@ export default function Messages({
   currentUser,
   fetchAllUsers,
   fetchCurrentUser,
-  sendMessage
+  sendMessage,
+  chatData,
+  setChatData
 }) {
 
   const [chatOpened, setChatOpened] = useState();
@@ -51,18 +53,23 @@ export default function Messages({
           },
           display: {
             xs: "none",
-            sm: "block",
+            sm: "flex",
           },
+          flexDirection: 'column',
+          justifyContent: 'space-between',
           borderRight: "1px solid rgba(0, 0, 0, 0.05)",
-          position: "relative",
+          // position: "relative",
           height: "80vh",
         }}
       >
         <ChatWindow
+          currentUser={currentUser}
           chatOpened={chatOpened}
           sendMessage={sendMessage}
           chatInput={chatInput}
           setChatInput={setChatInput}
+          chatData={chatData}
+          setChatData={setChatData}
         />
       </Box>
       <Box

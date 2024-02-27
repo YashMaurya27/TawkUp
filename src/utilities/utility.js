@@ -99,3 +99,40 @@ export const fetchUserDataByNode = async (userNode) => {
   const existingData = snapshot.val();
   return existingData;
 };
+
+export const fetchChatKey = async (currentUser, receiverId) => {
+  let chatExists = false;
+  let chatKey = "";
+  const chatRef = ref(database, `chats/${currentUser["uid"]}-${receiverId}`);
+  const snapshot = await get(chatRef);
+  chatExists = snapshot.exists();
+  if (chatExists === false) {
+    const otherChat = ref(
+      database,
+      `chats/${receiverId}-${currentUser["uid"]}`
+    );
+    const otherSnapshot = await get(otherChat);
+    chatExists = otherSnapshot.exists();
+    if (chatExists === true) {
+      chatKey = `chats/${receiverId}-${currentUser["uid"]}`;
+    }
+  } else {
+    chatKey = `chats/${currentUser["uid"]}-${receiverId}`;
+  }
+  if (chatKey === "") {
+    chatKey = `chats/${currentUser["uid"]}-${receiverId}`;
+  }
+  return chatKey;
+};
+
+export const fetchChatData = async (currentUser, receiverID) => {
+  const chatKey = await fetchChatKey(currentUser, receiverID);
+  const chatRef = ref(database, chatKey);
+  const snapshot = await get(chatRef);
+  const chatExists = snapshot.exists();
+  if (chatExists === true) {
+    return Object.values(snapshot.val());
+  } else {
+    return [];
+  }
+};

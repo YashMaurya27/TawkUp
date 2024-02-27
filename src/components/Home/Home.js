@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 // FIREBASE IMPORT
 import { database } from "../../utilities/firebase";
-import { ref, get } from "firebase/database";
+import { ref, get, push } from "firebase/database";
 import { useParams } from "react-router";
 import Topbar from "../Common/Topbar";
 import { Box } from "@mui/material";
@@ -11,6 +11,8 @@ import Discover from "./components/Discover";
 import Settings from "./components/Settings";
 import { CircleLoader } from "../../utilities/components";
 import {
+  fetchChatData,
+  fetchChatKey,
   fetchNodeIDbyUserId,
   fetchUserDataByNode,
 } from "../../utilities/utility";
@@ -21,29 +23,32 @@ export default function Home() {
   const [currentUser, setCurrentUser] = useState();
   const [friends, setFriends] = useState([]);
   const [tab, setTab] = useState();
+  const [chatData, setChatData] = useState();
   const userID = useParams()?.uId;
   const usersRef = ref(database, "users");
   const isFirstRender = useRef(true);
-
-  const ENDPOINT =
-    process.env.NODE_ENV === "development"
-      ? "http://localhost:3000"
-      : "https://tawkup.netlify.app/";
-  // const socket = io.connect("http://localhost:5000", {
-  //   transports: ["websocket"],
-  // });
-  const socket = io.connect("https://tawkup-2.onrender.com", { transports: ["websocket"] });
+  const listenerAdded = useRef(false);
+  const socket = useMemo(
+    () =>
+      io.connect("https://tawkup-2.onrender.com", {
+        transports: ["websocket"],
+      }),
+      // io.connect("http://localhost:5000", {
+      //   transports: ["websocket"],
+      // }),
+    []
+  );
   const fetchCurrentUser = async () => {
     const userNode = await fetchNodeIDbyUserId(userID, usersRef);
     if (userNode && userNode !== null) {
       const existingData = await fetchUserDataByNode(userNode);
       setCurrentUser({ ...existingData });
       setFriends(existingData?.["friends"] ?? []);
-      socket.emit("setUser", { id: existingData?.["uid"] });
       if (isFirstRender.current === true) {
         (existingData?.["friends"] ?? []).length === 0
           ? setTab("discover")
           : setTab("messages");
+        socket.emit("setUser", { id: existingData?.["uid"] });
         isFirstRender.current = false;
       }
     }
@@ -68,21 +73,44 @@ export default function Home() {
     }
   };
 
-  const sendMessage = (receiverId, message) => {
+  const sendMessage = async (receiverId, message) => {
     if (message) {
       socket.emit("privateMessage", { receiverId, message });
       console.log("message sent to", receiverId, message);
-      console.log("endpoint", ENDPOINT, "socket", socket);
+      console.log("socket", socket);
+      // const myNodeID = fetchNodeIDbyUserId(currentUser["uid"]);
+      const chatKey = await fetchChatKey(currentUser, receiverId);
+      const newMessage = {
+        sender: currentUser["uid"],
+        message: message,
+      };
+      const finalRef = ref(database, chatKey);
+      await push(finalRef, newMessage);
     }
   };
 
   useEffect(() => {
     fetchAllUsers();
     fetchCurrentUser();
-    socket.on("privateMessage", (message) => {
-      console.log("privateMessage listener", message);
-    });
   }, []);
+
+  useEffect(() => {
+    if (currentUser && listenerAdded.current === false) {
+      socket.on("privateMessage", (message) => {
+        console.log("privateMessage listener", message);
+        console.log(
+          "fetching data with these params",
+          currentUser,
+          message["senderId"]
+        );
+        fetchChatData(currentUser, message["userId"]).then((res) => {
+          console.log("fetched chat data", res);
+          setChatData([...res]);
+        });
+      });
+      listenerAdded.current = true;
+    }
+  }, [currentUser]);
 
   const renderTabs = () => {
     switch (tab) {
@@ -94,6 +122,8 @@ export default function Home() {
             fetchAllUsers={fetchAllUsers}
             fetchCurrentUser={fetchCurrentUser}
             sendMessage={sendMessage}
+            chatData={chatData}
+            setChatData={setChatData}
           />
         );
       case "discover":

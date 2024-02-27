@@ -7,7 +7,12 @@ import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { codeToTitle } from "../../utilities/utility";
 
 export default function Topbar(props) {
-  const tabOptions = ["messages", "discover", "settings"];
+  let tabOptions =
+    props.currentUser?.["friends"] === undefined ||
+    props.currentUser?.["friends"]?.length === 0
+      ? []
+      : ["messages"];
+  tabOptions = [...tabOptions, "discover", "settings"];
   return (
     <header className="header">
       <div className="header-logo">
@@ -35,9 +40,24 @@ export default function Topbar(props) {
               justifyContent: "space-between",
             }}
           >
-            <Skeleton variant="rectangular" width={100} height={20} sx={{ margin: '0 5px' }} />
-            <Skeleton variant="rectangular" width={100} height={20} sx={{ margin: '0 5px' }} />
-            <Skeleton variant="rectangular" width={100} height={20} sx={{ margin: '0 5px' }} />
+            <Skeleton
+              variant="rectangular"
+              width={100}
+              height={20}
+              sx={{ margin: "0 5px" }}
+            />
+            <Skeleton
+              variant="rectangular"
+              width={100}
+              height={20}
+              sx={{ margin: "0 5px" }}
+            />
+            <Skeleton
+              variant="rectangular"
+              width={100}
+              height={20}
+              sx={{ margin: "0 5px" }}
+            />
           </Box>
         )}
       </div>

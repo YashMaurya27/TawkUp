@@ -83,7 +83,10 @@ export default function Messages({
           },
         }}
       >
-        <ProfilePreview />
+        <ProfilePreview 
+          currentUser={currentUser}
+          chatOpened={chatOpened}
+        />
       </Box>
     </Box>
   );

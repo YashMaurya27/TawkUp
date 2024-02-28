@@ -24,18 +24,19 @@ export default function Home() {
   const [friends, setFriends] = useState([]);
   const [tab, setTab] = useState();
   const [chatData, setChatData] = useState();
+  const [intervalId, setIntervalId] = useState(null);
   const userID = useParams()?.uId;
   const usersRef = ref(database, "users");
   const isFirstRender = useRef(true);
   const listenerAdded = useRef(false);
   const socket = useMemo(
     () =>
-      io.connect("https://tawkup-2.onrender.com", {
-        transports: ["websocket"],
-      }),
-      // io.connect("http://localhost:5000", {
+      // io.connect("https://tawkup-2.onrender.com", {
       //   transports: ["websocket"],
       // }),
+      io.connect("http://localhost:5000", {
+        transports: ["websocket"],
+      }),
     []
   );
   const fetchCurrentUser = async () => {
@@ -73,20 +74,48 @@ export default function Home() {
     }
   };
 
+  const checkUserStatus = async (receiverId, activeUsersRef) => {
+    const node = await fetchNodeIDbyUserId(receiverId, activeUsersRef);
+    const user = ref(database, `active/${node}`);
+    const snapshot = await get(user);
+    const chatExists = snapshot.exists();
+    return chatExists;
+  };
+
   const sendMessage = async (receiverId, message) => {
-    if (message) {
-      socket.emit("privateMessage", { receiverId, message });
-      console.log("message sent to", receiverId, message);
-      console.log("socket", socket);
-      // const myNodeID = fetchNodeIDbyUserId(currentUser["uid"]);
-      const chatKey = await fetchChatKey(currentUser, receiverId);
-      const newMessage = {
-        sender: currentUser["uid"],
-        message: message,
-      };
-      const finalRef = ref(database, chatKey);
-      await push(finalRef, newMessage);
+    if (message && message !== "") {
+      const activeUsersRef = ref(database, `active`);
+      const active = await checkUserStatus(receiverId, activeUsersRef);
+      if (active === false) {
+        fetchChatKey(currentUser, receiverId).then((chatKey) => {
+          const newMessage = {
+            sender: currentUser["uid"],
+            message: message,
+          };
+          const finalRef = ref(database, chatKey);
+          push(finalRef, newMessage).then(() => {
+            fetchChatData(currentUser, receiverId).then((res) => {
+              setChatData([...res]);
+            });
+          });
+        });
+      } else {
+        console.log("in else", receiverId, message);
+        socket.emit("privateMessage", { receiverId, message });
+        checkMessageInDB(receiverId);
+      }
     }
+  };
+
+  const checkMessageInDB = (receiverId) => {
+    const interval = setInterval(() => {
+      fetchChatData(currentUser, receiverId).then((res) => {
+        if (res.length !== chatData?.length) {
+          setChatData([...res]);
+          clearInterval(interval);
+        }
+      });
+    }, 2000);
   };
 
   useEffect(() => {
@@ -97,15 +126,18 @@ export default function Home() {
   useEffect(() => {
     if (currentUser && listenerAdded.current === false) {
       socket.on("privateMessage", (message) => {
-        console.log("privateMessage listener", message);
-        console.log(
-          "fetching data with these params",
-          currentUser,
-          message["senderId"]
-        );
-        fetchChatData(currentUser, message["userId"]).then((res) => {
-          console.log("fetched chat data", res);
-          setChatData([...res]);
+        const senderID = message["userId"];
+        fetchChatKey(currentUser, senderID).then((chatKey) => {
+          const newMessage = {
+            sender: senderID,
+            message: message["message"],
+          };
+          const finalRef = ref(database, chatKey);
+          push(finalRef, newMessage).then(() => {
+            fetchChatData(currentUser, senderID).then((res) => {
+              setChatData([...res]);
+            });
+          });
         });
       });
       listenerAdded.current = true;

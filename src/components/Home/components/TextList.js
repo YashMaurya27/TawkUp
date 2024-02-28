@@ -116,7 +116,7 @@ export default function TextList({
                   <p className="contact-header">
                     {friend?.["firstName"]} {friend?.["lastName"]}
                   </p>
-                  <p className="contact-message">Say Hi!</p>
+                  <p className="contact-message">Tap to chat</p>
                 </Box>
               </div>
             );

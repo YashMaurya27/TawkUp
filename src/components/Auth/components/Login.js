@@ -19,7 +19,8 @@ import { convertToJWT } from "../../../utilities/utility";
 
 // FIREBASE IMPORTS
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../../utilities/firebase";
+import { auth, database } from "../../../utilities/firebase";
+import { push, ref } from "firebase/database";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -62,6 +63,13 @@ export default function Login() {
     const { email, password } = e;
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
+        const activeUsersRef = ref(database, "active");
+        const activeUser = {
+          email,
+          uid: userCredential?.user?.uid,
+        };
+        push(activeUsersRef, activeUser);
+
         const user = userCredential.user;
         sessionStorage.setItem("user", convertToJWT(user));
         navigate(`../../${user.uid}/home`);

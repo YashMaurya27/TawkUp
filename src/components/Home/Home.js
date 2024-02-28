@@ -31,12 +31,12 @@ export default function Home() {
   const listenerAdded = useRef(false);
   const socket = useMemo(
     () =>
-      // io.connect("https://tawkup-2.onrender.com", {
-      //   transports: ["websocket"],
-      // }),
-      io.connect("http://localhost:5000", {
+      io.connect("https://tawkup-2.onrender.com", {
         transports: ["websocket"],
       }),
+      // io.connect("http://localhost:5000", {
+      //   transports: ["websocket"],
+      // }),
     []
   );
   const fetchCurrentUser = async () => {

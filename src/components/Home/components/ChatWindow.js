@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Typography } from "@mui/material";
 import { CircleLoader } from "../../../utilities/components";
 import Texture from "../../../assets/images/bgTexture.png";
 import SendIcon from "@mui/icons-material/Send";
@@ -18,14 +18,18 @@ export default function ChatWindow({
   setChatInput,
   chatData,
   setChatData,
+  sending,
+  setSending,
 }) {
   const [chatLoad, setChatLoad] = useState(true);
 
   const handleSendMessage = async () => {
+    setSending({
+      sender: currentUser["uid"],
+      message: chatInput,
+    });
     setChatInput("");
     await sendMessage(chatOpened["uid"], chatInput);
-    const chat = await fetchChatData(currentUser, chatOpened["uid"]);
-    setChatData([...chat]);
   };
 
   useEffect(() => {
@@ -76,60 +80,74 @@ export default function ChatWindow({
               overflowY: "scroll",
             }}
           >
-            {chatData.map((chat) => {
-              return (
-                <Box
-                  sx={{
-                    width: "100%",
-                    display: "flex",
-                    justifyContent:
-                      chat["sender"] === currentUser["uid"] ? "end" : "start",
-                    margin: "5px 0",
-                  }}
-                >
+            {(sending ? [...chatData, sending] : chatData).map(
+              (chat, index) => {
+                return (
                   <Box
                     sx={{
+                      width: "100%",
                       display: "flex",
-                      flexDirection:
-                        chat["sender"] === currentUser["uid"]
-                          ? "row-reverse"
-                          : "row",
+                      justifyContent:
+                        chat["sender"] === currentUser["uid"] ? "end" : "start",
+                      margin: "5px 0",
                     }}
+                    key={`${chat["message"]}-${index}`}
                   >
-                    <img
-                      src={Avatar}
-                      alt="chat-avatar"
-                      style={{
-                        width: "40px",
-                        borderRadius: "50%",
-                        margin: "0 10px",
-                      }}
-                    />
                     <Box
                       sx={{
-                        textWrap: "wrap",
-                        boxShadow: "rgba(0, 0, 0, 0.05) 0px 0px 0px 1px",
-                        backgroundColor:
-                          chat["sender"] === currentUser["uid"]
-                            ? "white"
-                            : "#9c27b0",
-                        color:
-                          chat["sender"] === currentUser["uid"]
-                            ? "black"
-                            : "white",
-                        padding: "5px 15px",
-                        borderRadius: "20px",
                         display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
+                        flexDirection:
+                          chat["sender"] === currentUser["uid"]
+                            ? "row-reverse"
+                            : "row",
                       }}
                     >
-                      <p className="chat-text">{chat["message"]}</p>
+                      <img
+                        src={Avatar}
+                        alt="chat-avatar"
+                        style={{
+                          width: "40px",
+                          borderRadius: "50%",
+                          margin: "0 10px",
+                        }}
+                      />
+                      <Box
+                        sx={{
+                          textWrap: "wrap",
+                          boxShadow: "rgba(0, 0, 0, 0.05) 0px 0px 0px 1px",
+                          backgroundColor:
+                            chat["sender"] === currentUser["uid"]
+                              ? "white"
+                              : "#9c27b0",
+                          color:
+                            chat["sender"] === currentUser["uid"]
+                              ? "black"
+                              : "white",
+                          padding: "5px 15px",
+                          borderRadius: "20px",
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          opacity:
+                            sending && index === chatData.length
+                              ? "35%"
+                              : "100%",
+                        }}
+                      >
+                        <p className="chat-text">
+                          {chat["message"]}{" "}
+                          {sending && index === chatData.length && (
+                            <CircularProgress size={14} sx={{
+                              marginLeft: '5px',
+                            }} />
+                          )}
+                        </p>
+                      </Box>
                     </Box>
                   </Box>
-                </Box>
-              );
-            })}
+                );
+              }
+            )}
           </Box>
           <Box
             sx={{

@@ -24,6 +24,7 @@ export default function Home() {
   const [friends, setFriends] = useState([]);
   const [tab, setTab] = useState();
   const [chatData, setChatData] = useState();
+  const [sending, setSending] = useState();
   const [intervalId, setIntervalId] = useState(null);
   const userID = useParams()?.uId;
   const usersRef = ref(database, "users");
@@ -95,6 +96,7 @@ export default function Home() {
           const finalRef = ref(database, chatKey);
           push(finalRef, newMessage).then(() => {
             fetchChatData(currentUser, receiverId).then((res) => {
+              setSending(undefined);
               setChatData([...res]);
             });
           });
@@ -111,6 +113,7 @@ export default function Home() {
     const interval = setInterval(() => {
       fetchChatData(currentUser, receiverId).then((res) => {
         if (res.length !== chatData?.length) {
+          setSending(undefined);
           setChatData([...res]);
           clearInterval(interval);
         }
@@ -156,6 +159,8 @@ export default function Home() {
             sendMessage={sendMessage}
             chatData={chatData}
             setChatData={setChatData}
+            sending={sending}
+            setSending={setSending}
           />
         );
       case "discover":

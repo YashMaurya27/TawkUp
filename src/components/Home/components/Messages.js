@@ -11,7 +11,9 @@ export default function Messages({
   fetchCurrentUser,
   sendMessage,
   chatData,
-  setChatData
+  setChatData,
+  sending,
+  setSending
 }) {
 
   const [chatOpened, setChatOpened] = useState();
@@ -70,6 +72,8 @@ export default function Messages({
           setChatInput={setChatInput}
           chatData={chatData}
           setChatData={setChatData}
+          sending={sending}
+          setSending={setSending}
         />
       </Box>
       <Box

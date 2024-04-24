@@ -43,6 +43,13 @@ export default function ChatWindow({
     }
   }, [chatOpened]);
 
+  useEffect(() => {
+    if (chatLoad === false) {
+      var contentContainer = document.querySelector("#chat-div");
+      contentContainer.scrollTop = contentContainer.scrollHeight;
+    }
+  }, [chatLoad]);
+
   return (
     <>
       {chatLoad === false ? (
@@ -71,8 +78,12 @@ export default function ChatWindow({
               </Button>
             </Box>
           </Box>
-          <Box
-            sx={{
+          {/* <Box
+            sx={}
+          > */}
+          <div
+            id="chat-div"
+            style={{
               backgroundImage: `url(${Texture})`,
               backgroundSize: "cover", // Adjust the background size as needed
               backgroundPosition: "center",
@@ -137,9 +148,12 @@ export default function ChatWindow({
                         <p className="chat-text">
                           {chat["message"]}{" "}
                           {sending && index === chatData.length && (
-                            <CircularProgress size={14} sx={{
-                              marginLeft: '5px',
-                            }} />
+                            <CircularProgress
+                              size={14}
+                              sx={{
+                                marginLeft: "5px",
+                              }}
+                            />
                           )}
                         </p>
                       </Box>
@@ -148,7 +162,8 @@ export default function ChatWindow({
                 );
               }
             )}
-          </Box>
+          </div>
+          {/* </Box> */}
           <Box
             sx={{
               width: "100%",

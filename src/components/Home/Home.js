@@ -3,22 +3,25 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 // FIREBASE IMPORT
 import { database } from "../../utilities/firebase";
 import { ref, get, push } from "firebase/database";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import Topbar from "../Common/Topbar";
-import { Box } from "@mui/material";
+import { Box, Tab, Tabs } from "@mui/material";
 import Messages from "./components/Messages";
 import Discover from "./components/Discover";
 import Settings from "./components/Settings";
 import { CircleLoader } from "../../utilities/components";
 import {
+  codeToTitle,
   fetchChatData,
   fetchChatKey,
   fetchNodeIDbyUserId,
   fetchUserDataByNode,
+  logoutHandler,
 } from "../../utilities/utility";
 import io from "socket.io-client";
 
 export default function Home() {
+  const navigate = useNavigate();
   const [users, setUsers] = useState();
   const [currentUser, setCurrentUser] = useState();
   const [friends, setFriends] = useState([]);
@@ -26,6 +29,12 @@ export default function Home() {
   const [chatData, setChatData] = useState();
   const [sending, setSending] = useState();
   const [intervalId, setIntervalId] = useState(null);
+  let tabOptions =
+    currentUser?.["friends"] === undefined ||
+    currentUser?.["friends"]?.length === 0
+      ? []
+      : ["messages"];
+  tabOptions = [...tabOptions, "discover", "settings"];
   const userID = useParams()?.uId;
   const usersRef = ref(database, "users");
   const isFirstRender = useRef(true);
@@ -124,6 +133,16 @@ export default function Home() {
   useEffect(() => {
     fetchAllUsers();
     fetchCurrentUser();
+
+    function handleBeforeUnload() {
+      logoutHandler(currentUser?.["uid"]);
+      navigate("../../auth/login");
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
   }, []);
 
   useEffect(() => {
@@ -182,6 +201,36 @@ export default function Home() {
   return (
     <>
       <Topbar currentUser={currentUser} tab={tab} setTab={setTab} />
+      <Box
+        sx={{
+          display: {
+            xs: "flex",
+            sm: "none",
+          },
+          padding: "10px 0",
+          justifyContent: 'center'
+        }}
+      >
+        <Tabs
+          value={tab}
+          onChange={(e, val) => setTab(val)}
+          aria-label="disabled tabs example"
+          indicatorColor="secondary"
+          textColor="secondary"
+          sx={{
+            display: {
+              xs: "block",
+              sm: "none",
+            },
+          }}
+        >
+          {tabOptions.map((option) => {
+            return (
+              <Tab label={codeToTitle(option)} value={option} key={option} />
+            );
+          })}
+        </Tabs>
+      </Box>
       <div
         style={{
           backgroundColor: "#f8f6f8",

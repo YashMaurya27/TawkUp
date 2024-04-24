@@ -13,11 +13,37 @@ export default function Messages({
   chatData,
   setChatData,
   sending,
-  setSending
+  setSending,
 }) {
-
   const [chatOpened, setChatOpened] = useState();
   const [chatInput, setChatInput] = useState();
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+    console.log("window", {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    });
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  useEffect(() => {
+    if(windowSize?.width > 576) {
+      
+    }
+  }, [chatOpened]);
 
   return (
     <Box
@@ -57,8 +83,8 @@ export default function Messages({
             xs: "none",
             sm: "flex",
           },
-          flexDirection: 'column',
-          justifyContent: 'space-between',
+          flexDirection: "column",
+          justifyContent: "space-between",
           borderRight: "1px solid rgba(0, 0, 0, 0.05)",
           // position: "relative",
           height: "80vh",
@@ -87,10 +113,7 @@ export default function Messages({
           },
         }}
       >
-        <ProfilePreview 
-          currentUser={currentUser}
-          chatOpened={chatOpened}
-        />
+        <ProfilePreview currentUser={currentUser} chatOpened={chatOpened} />
       </Box>
     </Box>
   );

@@ -4,7 +4,11 @@ import { Box, Button, Skeleton, Tab, Tabs, Typography } from "@mui/material";
 import Logo from "../../assets/images/logoTwo.jpg";
 import Avatar from "../../assets/images/userOne.jpg";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import { codeToTitle, fetchNodeIDbyUserId } from "../../utilities/utility";
+import {
+  codeToTitle,
+  fetchNodeIDbyUserId,
+  logoutHandler,
+} from "../../utilities/utility";
 import Popover from "@mui/material/Popover";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -42,6 +46,12 @@ export default function Topbar(props) {
             aria-label="disabled tabs example"
             indicatorColor="secondary"
             textColor="secondary"
+            sx={{
+              display: {
+                xs: "none",
+                sm: "block",
+              },
+            }}
           >
             {tabOptions.map((option) => {
               return (
@@ -123,15 +133,7 @@ export default function Topbar(props) {
                   }}
                   startIcon={<LogoutIcon />}
                   onClick={() => {
-                    const usersRef = ref(database, "active");
-                    fetchNodeIDbyUserId(
-                      props.currentUser?.["uid"],
-                      usersRef
-                    ).then((nodeId) => {
-                      const userRef = ref(database, `active/${nodeId}`);
-                      remove(userRef);
-                    });
-                    sessionStorage.removeItem("user");
+                    logoutHandler(props.currentUser?.["uid"]);
                     navigate("../../auth/login");
                   }}
                 >

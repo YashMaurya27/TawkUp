@@ -32,10 +32,27 @@ hr {
     margin: 0;
     font-size: 14px;
     opacity: 80%;
+    /* text-wrap: wrap; */
+    overflow-wrap: anywhere;
 }
 
 .card-row {
     margin: 10px 0;
     display: flex;
     justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+
+
+@media only screen and (max-width: 900px) {
+    .user-card {
+        width: 48%;
+    }
+}
+
+@media only screen and (max-width: 600px) {
+    .user-card {
+        width: 98%;
+    }
 }

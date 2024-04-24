@@ -1,4 +1,4 @@
-import { equalTo, get, orderByChild, query, ref } from "firebase/database";
+import { equalTo, get, orderByChild, query, ref, remove } from "firebase/database";
 import { database } from "./firebase";
 
 export const trimTitles = (text, length) => {
@@ -135,4 +135,13 @@ export const fetchChatData = async (currentUser, receiverID) => {
   } else {
     return [];
   }
+};
+
+export const logoutHandler = (userId) => {
+  const usersRef = ref(database, "active");
+  fetchNodeIDbyUserId(userId, usersRef).then((nodeId) => {
+    const userRef = ref(database, `active/${nodeId}`);
+    remove(userRef);
+  });
+  sessionStorage.removeItem("user");
 };
